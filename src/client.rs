@@ -4,11 +4,11 @@ use image::{GenericImage, GenericImageView, ImageBuffer, RgbImage};
 use pancurses::{endwin, initscr, noecho, Input, Window};
 use serde::de::value::Error;
 use serde::{Serialize, Deserialize};
-use std::io::prelude::*;
+use std::io::{prelude::*, ErrorKind};
 use std::net::TcpStream;
 use std::collections::HashMap;
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize, Debug)]
 struct Entity
 {
     name: String,
@@ -17,6 +17,7 @@ struct Entity
 
 fn main() {
     let mut stream = TcpStream::connect("127.0.0.1:5000").expect("Failed to connect to the server");
+    stream.set_nonblocking(true);
     let screen = initscr();
     //*Needed For Start Menu Dont Move!
     screen.keypad(true);
@@ -65,7 +66,7 @@ fn engine(screen: Window, stream: &mut TcpStream, player_entity: &mut Entity) {
     // Loads the map through a png
     let mut map = load_map("test.png");
     //Holds the list of players on the network
-    let mut player: HashMap<String,Entity> = HashMap::new();
+    let mut client_player_map: HashMap<String,Entity> = HashMap::new();
     //Test
     let mut serialized_player_struct = serde_json::to_vec(&player_entity).expect("Failed to Serialize Player Struct We Done Fucked UP");
     stream.write_all(&serialized_player_struct);
@@ -104,6 +105,18 @@ fn engine(screen: Window, stream: &mut TcpStream, player_entity: &mut Entity) {
                 screen_width,
                 screen_height,
             );
+        //Getting the other clients data
+        let mut buffer = vec![0; 1024];
+        match stream.read(&mut buffer){
+            Ok(0) => break, // Connection is closed
+            Ok(streamed_data) => {
+                let received_data = &buffer[..streamed_data];
+                let received_struct: Entity = serde_json::from_slice(received_data).expect("Failed to Serialize Player Struct We Done Fucked UP");
+                client_player_map.insert(received_struct.name.clone(), received_struct);
+            }, // Data is available
+            Err(ref e) if e.kind() == ErrorKind::WouldBlock => (), // No data available
+            Err(e) => println!("Well shit: {}", e), // An actual error occurred
+        }
         //get_cur_yx() below
         for x in 0..screen_width {
             for y in 0..screen_height {
