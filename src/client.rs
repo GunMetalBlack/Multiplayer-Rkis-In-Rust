@@ -42,11 +42,11 @@ fn start_menu(screen: &Window) -> String {
     screen.mvprintw((center_y + 3).try_into().unwrap(), (center_x - "Press Enter To Confirm -> Limit is 10 characters".len() as u32 / 2).try_into().unwrap(), "Press Enter To Confirm -> Limit is 10 characters");
     loop {
         match screen.getch() {
-            Some(Input::KeyEnter) => break,
             Some(Input::Character(c)) => {
+                    if c == '\n' {break;}
+                    if user_name.len() as u32 >= 10 {break;}
                     user_name.push(c);
                     screen.mvprintw((center_y + 2).try_into().unwrap(), (center_x - user_name.len() as u32 / 2).try_into().unwrap(), &user_name);
-                    if user_name.len() as u32 >= 10 {break;}
                  },
             _ => ()
         }
@@ -67,8 +67,8 @@ fn engine(screen: Window, stream: &mut TcpStream, player_entity: &mut Entity) {
     //Holds the list of players on the network
     let mut player: HashMap<String,Entity> = HashMap::new();
     //Test
-    let mut init_serialized_player_struct = serde_json::to_vec(&player_entity).expect("Failed to Serialize Player Struct We Done Fucked UP");
-    stream.write_all(&init_serialized_player_struct);
+    let mut serialized_player_struct = serde_json::to_vec(&player_entity).expect("Failed to Serialize Player Struct We Done Fucked UP");
+    stream.write_all(&serialized_player_struct);
     //stream.read(&mut buffer);
     //Main game Loop
     loop {
@@ -76,12 +76,20 @@ fn engine(screen: Window, stream: &mut TcpStream, player_entity: &mut Entity) {
             Some(Input::Character(c)) => {
                 if c == 'w' {
                     player_entity.position.1 -= 1;
+                    serialized_player_struct = serde_json::to_vec(&player_entity).expect("Failed to Serialize Player Struct We Done Fucked UP");
+                    stream.write_all(&serialized_player_struct);
                 } else if c == 'a' {
-                    player_entity.position.0 -= 1
+                    player_entity.position.0 -= 1;
+                    serialized_player_struct = serde_json::to_vec(&player_entity).expect("Failed to Serialize Player Struct We Done Fucked UP");
+                    stream.write_all(&serialized_player_struct);
                 } else if c == 's' {
-                    player_entity.position.1 += 1
+                    player_entity.position.1 += 1;
+                    serialized_player_struct = serde_json::to_vec(&player_entity).expect("Failed to Serialize Player Struct We Done Fucked UP");
+                    stream.write_all(&serialized_player_struct);
                 } else if c == 'd' {
-                    player_entity.position.0 += 1
+                    player_entity.position.0 += 1;
+                    serialized_player_struct = serde_json::to_vec(&player_entity).expect("Failed to Serialize Player Struct We Done Fucked UP");
+                    stream.write_all(&serialized_player_struct);
                 }
             }
             //Some(input) => {screen.addstr(&format!("{:?}", input)); },

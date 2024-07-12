@@ -24,8 +24,19 @@ fn handle_connection(stream:&mut TcpStream)
 {
     //Probably Big enough buffer Knock on wood
     let mut buffer = vec![0; 1024];
-    let streamed_data = stream.read(&mut buffer).expect("Failed to unpack Entity on server");
-    let received_data = &buffer[..streamed_data];
-    let received_struct: Entity = serde_json::from_slice(received_data).expect("Failed to Serialize Player Struct We Done Fucked UP");
-    println!("Received struct: {:?}", received_struct);
+    loop {
+        let result = stream.read(&mut buffer);
+        match result {
+            Ok(streamed_data) => {
+                let received_data = &buffer[..streamed_data];
+                let received_struct: Entity = serde_json::from_slice(received_data).expect("Failed to Serialize Player Struct We Done Fucked UP");
+                println!("Received struct: {:?}", received_struct);
+            },
+            Err(e) => {
+                eprintln!("Failed to unpack Entity on server: {}", e);
+                break; // exit the loop
+            }
+        }
+    }
+    
 }
