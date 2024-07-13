@@ -64,7 +64,7 @@ fn load_map(filename: &str) -> RgbImage {
 
 fn engine(screen: Window, stream: &mut TcpStream, player_entity: &mut Entity) {
     // Loads the map through a png
-    let mut map = load_map("test.png");
+    let mut map: ImageBuffer<image::Rgb<u8>, Vec<u8>> = load_map("test.png");
     //Holds the list of players on the network
     let mut client_player_map: HashMap<String,Entity> = HashMap::new();
     //Test
@@ -77,22 +77,22 @@ fn engine(screen: Window, stream: &mut TcpStream, player_entity: &mut Entity) {
             Some(Input::Character(c)) => {
                 
                 if c == 'w' {
-                    player_move(0, -1, player_entity);
+                    player_move(0, -1, player_entity, &map);
                     //player_entity.position.1 -= 1;
                     serialized_player_struct = serde_json::to_vec(&player_entity).expect("Failed to Serialize Player Struct We Done Fucked UP");
                     stream.write_all(&serialized_player_struct);
                 } else if c == 'a' {
-                    player_move(-1, 0, player_entity);
+                    player_move(-1, 0, player_entity, &map);
                    // player_entity.position.0 -= 1;
                     serialized_player_struct = serde_json::to_vec(&player_entity).expect("Failed to Serialize Player Struct We Done Fucked UP");
                     stream.write_all(&serialized_player_struct);
                 } else if c == 's' {
-                    player_move(0, 1, player_entity);
+                    player_move(0, 1, player_entity, &map);
                     //player_entity.position.1 += 1;
                     serialized_player_struct = serde_json::to_vec(&player_entity).expect("Failed to Serialize Player Struct We Done Fucked UP");
                     stream.write_all(&serialized_player_struct);
                 } else if c == 'd' {
-                    player_move(1, 0, player_entity);
+                    player_move(1, 0, player_entity, &map);
                     //player_entity.position.0 += 1;
                     serialized_player_struct = serde_json::to_vec(&player_entity).expect("Failed to Serialize Player Struct We Done Fucked UP");
                     stream.write_all(&serialized_player_struct);
@@ -146,10 +146,17 @@ fn engine(screen: Window, stream: &mut TcpStream, player_entity: &mut Entity) {
     }
 }
 
-fn player_move(x: i32, y:i32, player: &mut Entity){
+fn player_move(x: i32, y:i32, player: &mut Entity, map: &ImageBuffer<image::Rgb<u8>, Vec<u8>>){
     let temp_x = (player.position.0 as i32 + x) as u32;
     let temp_y = (player.position.1 as i32 + y) as u32;
-    
-    // player.position.0 = 
-    // player.position.1 = 
+    match map.get_pixel(temp_x, temp_y) {
+        image::Rgb([255, 0, 0]) => {
+            return;
+        }
+        _ => {
+            player.position.0 = temp_x;
+            player.position.1 = temp_y;
+        }
+    }
+
 }
