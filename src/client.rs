@@ -130,7 +130,12 @@ fn engine(screen: Window, stream: &mut TcpStream, player_entity: &mut Entity) {
                 }
             }
         }
-
+        for (client_id, client_entity) in client_player_map.iter()
+        {
+            let mut other_player_screen_space_x = client_entity.position.0 - (player_entity.position.0 - (screen_width / 2));
+            let mut other_player_screen_space_y = client_entity.position.1 - (player_entity.position.1 - (screen_height / 2));
+            screen.mvaddch(other_player_screen_space_y as i32,other_player_screen_space_x as i32,'P');
+        }
         screen.mvaddch((screen_height / 2) as i32, (screen_width / 2) as i32, 'P');
     }
 }
