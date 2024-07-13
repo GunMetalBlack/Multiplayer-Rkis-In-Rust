@@ -25,7 +25,7 @@ fn main() {
     screen.keypad(true);
     noecho();
     // Init The main player
-    let mut player_entity = Entity{name:start_menu(&screen),position:(256, 256)};
+    let mut player_entity = Entity{name:start_menu(&screen),position:(262, 256)};
     //Cleans the screen
     screen.refresh();
     screen.nodelay(true);
@@ -129,7 +129,7 @@ fn engine(screen: Window, stream: &mut TcpStream, player_entity: &mut Entity) {
             for y in 0..screen_height {
                 match subimg.get_pixel(x, y) {
                     WALL_COLOR_CODE => {
-                        screen.mvaddstr(y as i32, x as i32, "█");
+                        screen.mvaddstr(y as i32, x as i32,"█");
                     }
                     _ => {
                         screen.mvaddch(y as i32, x as i32, '.');
