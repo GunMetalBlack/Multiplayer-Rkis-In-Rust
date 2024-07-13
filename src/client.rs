@@ -75,20 +75,25 @@ fn engine(screen: Window, stream: &mut TcpStream, player_entity: &mut Entity) {
     loop {
         match screen.getch() {
             Some(Input::Character(c)) => {
+                
                 if c == 'w' {
-                    player_entity.position.1 -= 1;
+                    player_move(0, -1, player_entity);
+                    //player_entity.position.1 -= 1;
                     serialized_player_struct = serde_json::to_vec(&player_entity).expect("Failed to Serialize Player Struct We Done Fucked UP");
                     stream.write_all(&serialized_player_struct);
                 } else if c == 'a' {
-                    player_entity.position.0 -= 1;
+                    player_move(-1, 0, player_entity);
+                   // player_entity.position.0 -= 1;
                     serialized_player_struct = serde_json::to_vec(&player_entity).expect("Failed to Serialize Player Struct We Done Fucked UP");
                     stream.write_all(&serialized_player_struct);
                 } else if c == 's' {
-                    player_entity.position.1 += 1;
+                    player_move(0, 1, player_entity);
+                    //player_entity.position.1 += 1;
                     serialized_player_struct = serde_json::to_vec(&player_entity).expect("Failed to Serialize Player Struct We Done Fucked UP");
                     stream.write_all(&serialized_player_struct);
                 } else if c == 'd' {
-                    player_entity.position.0 += 1;
+                    player_move(1, 0, player_entity);
+                    //player_entity.position.0 += 1;
                     serialized_player_struct = serde_json::to_vec(&player_entity).expect("Failed to Serialize Player Struct We Done Fucked UP");
                     stream.write_all(&serialized_player_struct);
                 }
@@ -132,10 +137,19 @@ fn engine(screen: Window, stream: &mut TcpStream, player_entity: &mut Entity) {
         }
         for (client_id, client_entity) in client_player_map.iter()
         {
-            let mut other_player_screen_space_x = client_entity.position.0 - (player_entity.position.0 - (screen_width / 2));
-            let mut other_player_screen_space_y = client_entity.position.1 - (player_entity.position.1 - (screen_height / 2));
-            screen.mvaddch(other_player_screen_space_y as i32,other_player_screen_space_x as i32,'P');
+            let mut other_player_screen_space_x = client_entity.position.0 as i32 - (player_entity.position.0 as i32 - (screen_width as i32 / 2));
+            let mut other_player_screen_space_y = client_entity.position.1 as i32 - (player_entity.position.1 as i32 - (screen_height as i32 / 2));
+            if(other_player_screen_space_x <= screen_width as i32 && other_player_screen_space_y  <= screen_height as i32)
+            {screen.mvaddch(other_player_screen_space_y ,other_player_screen_space_x ,'P');}
         }
         screen.mvaddch((screen_height / 2) as i32, (screen_width / 2) as i32, 'P');
     }
+}
+
+fn player_move(x: i32, y:i32, player: &mut Entity){
+    let temp_x = (player.position.0 as i32 + x) as u32;
+    let temp_y = (player.position.1 as i32 + y) as u32;
+    
+    // player.position.0 = 
+    // player.position.1 = 
 }
