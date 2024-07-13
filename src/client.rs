@@ -15,6 +15,8 @@ struct Entity
     position: (u32, u32)
 }
 
+const  WALL_COLOR_CODE:image::Rgb<u8> =  image::Rgb([255, 0, 0]);
+
 fn main() {
     let mut stream = TcpStream::connect("127.0.0.1:5000").expect("Failed to connect to the server");
     stream.set_nonblocking(true);
@@ -126,8 +128,8 @@ fn engine(screen: Window, stream: &mut TcpStream, player_entity: &mut Entity) {
         for x in 0..screen_width {
             for y in 0..screen_height {
                 match subimg.get_pixel(x, y) {
-                    image::Rgb([255, 0, 0]) => {
-                        screen.mvaddch(y as i32, x as i32, '#');
+                    WALL_COLOR_CODE => {
+                        screen.mvaddstr(y as i32, x as i32, "█");
                     }
                     _ => {
                         screen.mvaddch(y as i32, x as i32, '.');
@@ -150,7 +152,7 @@ fn player_move(x: i32, y:i32, player: &mut Entity, map: &ImageBuffer<image::Rgb<
     let temp_x = (player.position.0 as i32 + x) as u32;
     let temp_y = (player.position.1 as i32 + y) as u32;
     match map.get_pixel(temp_x, temp_y) {
-        image::Rgb([255, 0, 0]) => {
+        &WALL_COLOR_CODE => {
             return;
         }
         _ => {
